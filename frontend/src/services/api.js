@@ -9,8 +9,10 @@ const handleResponse = async (response) => {
     let errorData;
     try {
       errorData = await response.json();
+      console.error('API Error Response:', errorData);
     } catch (e) {
-      errorData = { message: 'Bir hata oluştu.' };
+      errorData = { message: 'Bir sunucu hatası oluştu.' };
+      console.error('API Error (Could not parse JSON):', response.status, response.statusText);
     }
 
     const error = new Error(errorData.message || 'Bir hata oluştu.');
@@ -28,6 +30,7 @@ const handleResponse = async (response) => {
 
 export const api = {
   async get(endpoint, options = {}) {
+    console.log(`GET ${endpoint}`);
     const token = getAuthToken();
     const headers = {
       ...options.headers,
@@ -37,16 +40,21 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      method: 'GET',
-      headers,
-    });
-
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        method: 'GET',
+        headers,
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Fetch GET ${endpoint} failed:`, error);
+      throw error;
+    }
   },
 
   async post(endpoint, data, options = {}) {
+    console.log(`POST ${endpoint}`, data instanceof FormData ? 'FormData' : data);
     const token = getAuthToken();
     const headers = {
       ...options.headers,
@@ -59,23 +67,27 @@ export const api = {
     let body;
     if (data instanceof FormData) {
       body = data;
-      // Fetch will automatically set Content-Type for FormData
     } else {
       headers['Content-Type'] = 'application/json';
       body = JSON.stringify(data);
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      method: 'POST',
-      headers,
-      body,
-    });
-
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        method: 'POST',
+        headers,
+        body,
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Fetch POST ${endpoint} failed:`, error);
+      throw error;
+    }
   },
 
   async patch(endpoint, data, options = {}) {
+    console.log(`PATCH ${endpoint}`, data);
     const token = getAuthToken();
     const headers = {
       ...options.headers,
@@ -86,17 +98,22 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify(data),
-    });
-
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Fetch PATCH ${endpoint} failed:`, error);
+      throw error;
+    }
   },
 
   async delete(endpoint, options = {}) {
+    console.log(`DELETE ${endpoint}`);
     const token = getAuthToken();
     const headers = {
       ...options.headers,
@@ -106,12 +123,16 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      method: 'DELETE',
-      headers,
-    });
-
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        method: 'DELETE',
+        headers,
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error(`Fetch DELETE ${endpoint} failed:`, error);
+      throw error;
+    }
   }
 };

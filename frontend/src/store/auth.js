@@ -18,10 +18,11 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('token', access_token);
 
         // Fetch profile immediately after login
-        await this.fetchProfile();
-        return this.user;
+        const profile = await this.fetchProfile();
+        return profile;
       } catch (error) {
         this.logout();
+        console.error('Login action failed:', error);
         throw error;
       }
     },
@@ -30,17 +31,24 @@ export const useAuthStore = defineStore('auth', {
       try {
         return await api.post('/auth/register', userData);
       } catch (error) {
+        console.error('Register action failed:', error);
         throw error;
       }
     },
 
     async fetchProfile() {
+      if (!this.token) {
+        this.logout();
+        throw new Error('No token found');
+      }
+
       try {
         const profile = await api.get('/users/profile');
         this.user = profile;
         localStorage.setItem('user', JSON.stringify(profile));
         return profile;
       } catch (error) {
+        console.error('Fetch profile failed:', error);
         if (error.status === 401) {
           this.logout();
         }
@@ -53,6 +61,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       localStorage.removeItem('token')
       localStorage.removeItem('user')
+      console.log('Logged out');
     }
   }
 })
