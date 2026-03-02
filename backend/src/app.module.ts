@@ -22,8 +22,11 @@ import { ActivitiesModule } from './activities/activities.module';
       synchronize: true,
     }),
     ServeStaticModule.forRoot({
-      // Frontend dist is at /app/frontend/dist, cwd is /app
-      rootPath: join(process.cwd(), '..', 'frontend', 'dist'),
+      // In Docker, cwd is /app and frontend is at /app/frontend/dist
+      // In local dev, if started from backend/, we need to go up one level
+      rootPath: require('fs').existsSync(join(process.cwd(), 'frontend', 'dist'))
+        ? join(process.cwd(), 'frontend', 'dist')
+        : join(process.cwd(), '..', 'frontend', 'dist'),
       exclude: ['/api/(.*)'],
     }),
     UsersModule,

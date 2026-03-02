@@ -18,6 +18,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getResponse()
         : { message: 'Sunucu hatası oluştu.' };
 
+    // Log the error for easier debugging
+    console.error('An unexpected error occurred:', exception);
+
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
